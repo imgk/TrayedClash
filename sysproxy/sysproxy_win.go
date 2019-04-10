@@ -4,6 +4,7 @@ package sysproxy
 
 import (
 	"syscall"
+
 	"golang.org/x/sys/windows/registry"
 )
 

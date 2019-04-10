@@ -2,9 +2,11 @@ package clash
 
 import (
 	"strconv"
-	"github.com/Dreamacro/clash/hub/executor"
+
+	"github.com/Dreamacro/clash/proxy"
 	"github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/config"
+
 	"github.com/imgk/TrayedClash/sysproxy"
 )
 
@@ -19,17 +21,15 @@ func NewClash() (*Clash, error) {
 		return nil, err
 	}
 
-	instance := &Clash{
+	return &Clash{
 		Secret: conf.General.Secret,
 		Server: conf.General.ExternalController,
-	}
-	return instance, nil
+	}, nil
 }
 
 func (c *Clash) GetProxies() *sysproxy.ProxyConfig {
-	general := executor.GetGeneral()
 	return &sysproxy.ProxyConfig{
-                Enable: true,
-                Server: "127.0.0.1:" + strconv.Itoa(general.Port),
-        }
+        Enable: true,
+        Server: "127.0.0.1:" + strconv.Itoa(proxy.GetPorts().Port),
+    }
 }
