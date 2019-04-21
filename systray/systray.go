@@ -1,14 +1,14 @@
 package systray
 
-import(
+import (
 	"runtime"
 
 	"github.com/getlantern/systray"
 	"github.com/skratchdot/open-golang/open"
 
+	"github.com/imgk/TrayedClash/clash"
 	"github.com/imgk/TrayedClash/icon"
 	"github.com/imgk/TrayedClash/sysproxy"
-	"github.com/imgk/TrayedClash/clash"
 )
 
 func Run() {
@@ -33,21 +33,22 @@ func onReady() {
 
 	mGlobalProxies := make(map[string]*systray.MenuItem)
 	for _, v := range clash.GetInstance().GetGlobalProxies() {
-		mGlobalProxies[v] = systray.AddMenuItem(v, "Set Global as " + v)
+		mGlobalProxies[v] = systray.AddMenuItem(v, "Set Global as "+v)
 	}
 
 	systray.AddSeparator()
 
 	mEnabled := systray.AddMenuItem("Set as System Proxy", "Turn on/off Proxy")
-	mUrl := systray.AddMenuItem("Clash Dashboard", "Open Clash Dashboard")
+	mUpConfig := systray.AddMenuItem("Update Remote Config", "Update Remote Config")
+	mUrl := systray.AddMenuItem("Open Clash Dashboard", "Open Clash Dashboard")
 
 	systray.AddSeparator()
 
 	mQuit := systray.AddMenuItem("Exit", "Quit Clash")
 
-	changeMode := func (mode clash.Mode) {
+	changeMode := func(mode clash.Mode) {
 		switch mode {
-		case clash.Global: 
+		case clash.Global:
 			mGlobal.Check()
 			mRule.Uncheck()
 			mDirect.Uncheck()
@@ -62,7 +63,7 @@ func onReady() {
 		}
 	}
 
-	changeGlobal := func (mode clash.Mode) {
+	changeGlobal := func(mode clash.Mode) {
 		if mode == clash.Global {
 			for k, v := range mGlobalProxies {
 				v.Enable()
@@ -84,7 +85,7 @@ func onReady() {
 
 	for name, item := range mGlobalProxies {
 		var ch = make(chan int)
-		go func (proxy string, menu *systray.MenuItem) {
+		go func(proxy string, menu *systray.MenuItem) {
 			ch <- 1
 			for {
 				<-menu.ClickedCh
@@ -96,6 +97,7 @@ func onReady() {
 		}(name, item)
 		// wait for goroutine to create
 		<-ch
+		close(ch)
 	}
 
 	go func() {
@@ -121,6 +123,8 @@ func onReady() {
 					mEnabled.Check()
 					sysproxy.SetProxy(clash.GetInstance().GetProxies())
 				}
+			case <-mUpConfig.ClickedCh:
+				clash.GetInstance().UpdateConfigFromRemote()
 			case <-mUrl.ClickedCh:
 				open.Run("http://clash.razord.top")
 			case <-mQuit.ClickedCh:

@@ -8,3 +8,8 @@
 ## Why this repo
 
 Provide a simple GUI for [clash](https://github.com/Dreamacro/clash) on windows platform.
+
+## Features
+* Simple GUI written by Golang only
+* Update config with URL
+  + Put #!this_is_the_url at the first line of config file. Restart TrayedClash after the config file is updated.
