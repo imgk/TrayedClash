@@ -39,7 +39,6 @@ func onReady() {
 	systray.AddSeparator()
 
 	mEnabled := systray.AddMenuItem("Set as System Proxy", "Turn on/off Proxy")
-	mUpConfig := systray.AddMenuItem("Update Remote Config", "Update Remote Config")
 	mUrl := systray.AddMenuItem("Open Clash Dashboard", "Open Clash Dashboard")
 
 	systray.AddSeparator()
@@ -123,8 +122,6 @@ func onReady() {
 					mEnabled.Check()
 					sysproxy.SetProxy(clash.GetInstance().GetProxies())
 				}
-			case <-mUpConfig.ClickedCh:
-				clash.GetInstance().UpdateConfigFromRemote()
 			case <-mUrl.ClickedCh:
 				open.Run("http://clash.razord.top")
 			case <-mQuit.ClickedCh:
