@@ -17,13 +17,15 @@ import (
 )
 
 var (
-	version bool
-	homedir string
+	version    bool
+	homeDir    string
+	configFile string
 )
 
 func init() {
+	flag.StringVar(&homeDir, "d", "", "set configuration directory")
+	flag.StringVar(&configFile, "f", "", "specify configuration file")
 	flag.BoolVar(&version, "v", false, "show current version of clash")
-	flag.StringVar(&homedir, "d", "", "set configuration directory")
 	flag.Parse()
 }
 
@@ -33,20 +35,28 @@ func main() {
 		return
 	}
 
-	// enable tls 1.3 and remove when go 1.13
-	os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")
-
-	if homedir != "" {
-		if !filepath.IsAbs(homedir) {
+	if homeDir != "" {
+		if !filepath.IsAbs(homeDir) {
 			currentDir, _ := os.Getwd()
-			homedir = filepath.Join(currentDir, homedir)
+			homeDir = filepath.Join(currentDir, homeDir)
 		}
-		C.SetHomeDir(homedir)
+		C.SetHomeDir(homeDir)
 	} else {
 		if runtime.GOOS == "windows" {
 			currentDir, _ := os.Getwd()
 			C.SetHomeDir(currentDir)
 		}
+	}
+
+	if configFile != "" {
+		if !filepath.IsAbs(configFile) {
+			currentDir, _ := os.Getwd()
+			configFile = filepath.Join(currentDir, configFile)
+		}
+		C.SetConfig(configFile)
+	} else {
+		configFile := filepath.Join(C.Path.HomeDir(), C.Path.Config())
+		C.SetConfig(configFile)
 	}
 
 	if err := config.Init(C.Path.HomeDir()); err != nil {

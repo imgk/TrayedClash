@@ -1,12 +1,14 @@
 package systray
 
 import (
-	"runtime"
+	"strconv"
 
 	"github.com/getlantern/systray"
 	"github.com/skratchdot/open-golang/open"
 
-	"github.com/imgk/TrayedClash/clash"
+	"github.com/Dreamacro/clash/proxy"
+	"github.com/Dreamacro/clash/tunnel"
+
 	"github.com/imgk/TrayedClash/icon"
 	"github.com/imgk/TrayedClash/sysproxy"
 )
@@ -16,111 +18,67 @@ func Run() {
 }
 
 func onReady() {
-	systray.SetIcon(icon.Data)
-	switch runtime.GOOS {
-	case "darwin":
-		systray.SetTitle("")
-	default:
-		systray.SetTitle("Clash - A rule-based tunnel in Go")
-	}
-	systray.SetTooltip("Clash")
+	go func() {
+		systray.SetIcon(icon.Data)
+		systray.SetTitle("Clash")
+		systray.SetTooltip("A rule-based tunnel in Go")
 
-	mGlobal := systray.AddMenuItem("Global", "Set as Global")
-	mRule := systray.AddMenuItem("Rule", "Set as Rule")
-	mDirect := systray.AddMenuItem("Direct", "Set as Direct")
+		mTemp := systray.AddMenuItem("", "")
+		mTest := systray.AddMenuItem("Clash - A Rule-based Tunnel", "")
+		systray.AddSeparator()
 
-	systray.AddSeparator()
+		mGlobal := systray.AddMenuItem("Global", "Set as Global")
+		mRule := systray.AddMenuItem("Rule", "Set as Rule")
+		mDirect := systray.AddMenuItem("Direct", "Set as Direct")
 
-	mGlobalProxies := make(map[string]*systray.MenuItem)
-	for _, v := range clash.GetInstance().GetGlobalProxies() {
-		mGlobalProxies[v] = systray.AddMenuItem(v, "Set Global as "+v)
-	}
+		systray.AddSeparator()
 
-	systray.AddSeparator()
+		mEnabled := systray.AddMenuItem("Set as System Proxy", "Turn on/off Proxy")
+		mUrl := systray.AddMenuItem("Open Clash Dashboard", "Open Clash Dashboard")
 
-	mEnabled := systray.AddMenuItem("Set as System Proxy", "Turn on/off Proxy")
-	mUrl := systray.AddMenuItem("Open Clash Dashboard", "Open Clash Dashboard")
+		systray.AddSeparator()
 
-	systray.AddSeparator()
+		mQuit := systray.AddMenuItem("Exit", "Quit Clash")
 
-	mQuit := systray.AddMenuItem("Exit", "Quit Clash")
-
-	changeMode := func(mode clash.Mode) {
-		switch mode {
-		case clash.Global:
+		switch tunnel.Instance().Mode() {
+		case tunnel.Global:
 			mGlobal.Check()
-			mRule.Uncheck()
-			mDirect.Uncheck()
-		case clash.Rule:
-			mGlobal.Uncheck()
+		case tunnel.Rule:
 			mRule.Check()
-			mDirect.Uncheck()
-		case clash.Direct:
-			mGlobal.Uncheck()
-			mRule.Uncheck()
+		case tunnel.Direct:
 			mDirect.Check()
 		}
-	}
 
-	changeGlobal := func(mode clash.Mode) {
-		if mode == clash.Global {
-			for k, v := range mGlobalProxies {
-				v.Enable()
-				if k == clash.GetInstance().GetGlobalNow() {
-					v.Check()
-				} else {
-					v.Uncheck()
-				}
-			}
-		} else {
-			for _, v := range mGlobalProxies {
-				v.Disable()
-			}
-		}
-	}
-
-	changeMode(clash.GetInstance().GetMode())
-	changeGlobal(clash.GetInstance().GetMode())
-
-	for name, item := range mGlobalProxies {
-		var ch = make(chan int)
-		go func(proxy string, menu *systray.MenuItem) {
-			ch <- 1
-			for {
-				<-menu.ClickedCh
-				if clash.GetInstance().SetGlobalNow(proxy) != nil {
-					continue
-				}
-				changeGlobal(clash.GetInstance().GetMode())
-			}
-		}(name, item)
-		// wait for goroutine to create
-		<-ch
-		close(ch)
-	}
-
-	go func() {
 		for {
 			select {
+			case <-mTemp.ClickedCh:
+			case <-mTest.ClickedCh:
 			case <-mGlobal.ClickedCh:
-				changeMode(clash.Global)
-				clash.GetInstance().SetMode(clash.Global)
-				changeGlobal(clash.GetInstance().GetMode())
+				mGlobal.Check()
+				mRule.Uncheck()
+				mDirect.Uncheck()
+				tunnel.Instance().SetMode(tunnel.Global)
 			case <-mRule.ClickedCh:
-				changeMode(clash.Rule)
-				clash.GetInstance().SetMode(clash.Rule)
-				changeGlobal(clash.GetInstance().GetMode())
+				mGlobal.Uncheck()
+				mRule.Check()
+				mDirect.Uncheck()
+				tunnel.Instance().SetMode(tunnel.Rule)
 			case <-mDirect.ClickedCh:
-				changeMode(clash.Direct)
-				clash.GetInstance().SetMode(clash.Direct)
-				changeGlobal(clash.GetInstance().GetMode())
+				mGlobal.Uncheck()
+				mRule.Uncheck()
+				mDirect.Check()
+				tunnel.Instance().SetMode(tunnel.Direct)
 			case <-mEnabled.ClickedCh:
 				if mEnabled.Checked() {
 					mEnabled.Uncheck()
-					sysproxy.SetProxy(sysproxy.GetSystemConfig())
+					sysproxy.SetSystemProxy(sysproxy.SystemProxy)
 				} else {
 					mEnabled.Check()
-					sysproxy.SetProxy(clash.GetInstance().GetProxies())
+					sysproxy.SetSystemProxy(
+						&sysproxy.ProxyConfig{
+							Enable: true,
+							Server: "127.0.0.1:" + strconv.Itoa(proxy.GetPorts().Port),
+						})
 				}
 			case <-mUrl.ClickedCh:
 				open.Run("http://clash.razord.top")
@@ -133,5 +91,5 @@ func onReady() {
 }
 
 func onExit() {
-	sysproxy.SetProxy(sysproxy.GetSystemConfig())
+	sysproxy.SetSystemProxy(sysproxy.SystemProxy)
 }
