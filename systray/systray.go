@@ -1,10 +1,12 @@
 package systray
 
 import (
+	"runtime"
 	"strconv"
 	"time"
 
 	"github.com/getlantern/systray"
+	"github.com/skratchdot/open-golang/open"
 
 	"github.com/Dreamacro/clash/proxy"
 	"github.com/Dreamacro/clash/tunnel"
@@ -13,9 +15,13 @@ import (
 	"github.com/imgk/TrayedClash/sysproxy"
 )
 
+func init() {
+	runtime.LockOSThread()
+}
+
 // Run is ...
 func Run() {
-	systray.RunWithAppWindow("Clash", 900, 600, onReady, onExit)
+	systray.RunWithAppWindow("Clash", 960, 640, onReady, onExit)
 }
 
 func onReady() {
@@ -23,19 +29,16 @@ func onReady() {
 	systray.SetTitle("Clash")
 	systray.SetTooltip("A Rule-based Tunnel in Go")
 
-	mTemp := systray.AddMenuItem("", "")
-	mTest := systray.AddMenuItem("Clash - A Rule-based Tunnel", "")
+	mTitle := systray.AddMenuItem("Clash - A Rule-based Tunnel", "")
 	systray.AddSeparator()
 
 	mGlobal := systray.AddMenuItem("Global", "Set as Global")
 	mRule := systray.AddMenuItem("Rule", "Set as Rule")
 	mDirect := systray.AddMenuItem("Direct", "Set as Direct")
-
 	systray.AddSeparator()
 
 	mEnabled := systray.AddMenuItem("Set as System Proxy", "Turn on/off Proxy")
 	mURL := systray.AddMenuItem("Open Clash Dashboard", "Open Clash Dashboard")
-
 	systray.AddSeparator()
 
 	mQuit := systray.AddMenuItem("Exit", "Quit Clash")
@@ -44,7 +47,7 @@ func onReady() {
 		t := time.NewTicker(time.Duration(time.Second))
 		defer t.Stop()
 
-		savedPort := proxy.GetPorts().Port
+		SavedPort := proxy.GetPorts().Port
 		for {
 			<-t.C
 
@@ -73,19 +76,23 @@ func onReady() {
 			}
 
 			if mEnabled.Checked() {
-				clashPort := proxy.GetPorts().Port
-				if savedPort != clashPort {
-					savedPort = clashPort
+				p := proxy.GetPorts().Port
+				if SavedPort != p {
+					SavedPort = p
 					sysproxy.SetSystemProxy(
 						&sysproxy.ProxyConfig{
 							Enable: true,
-							Server: "127.0.0.1:" + strconv.Itoa(savedPort),
+							Server: "127.0.0.1:" + strconv.Itoa(SavedPort),
 						})
 				}
 			}
 
-			systemProxy := sysproxy.GetCurrentProxy()
-			if systemProxy.Enable && systemProxy.Server == "127.0.0.1:"+strconv.Itoa(savedPort) {
+			p, err := sysproxy.GetCurrentProxy()
+			if err != nil {
+				continue
+			}
+
+			if p.Enable && p.Server == "127.0.0.1:"+strconv.Itoa(SavedPort) {
 				if mEnabled.Checked() {
 				} else {
 					mEnabled.Check()
@@ -93,6 +100,7 @@ func onReady() {
 			} else {
 				if mEnabled.Checked() {
 					mEnabled.Uncheck()
+				} else {
 				}
 			}
 		}
@@ -101,8 +109,7 @@ func onReady() {
 	go func() {
 		for {
 			select {
-			case <-mTemp.ClickedCh:
-			case <-mTest.ClickedCh:
+			case <-mTitle.ClickedCh:
 			case <-mGlobal.ClickedCh:
 				tunnel.Instance().SetMode(tunnel.Global)
 			case <-mRule.ClickedCh:
@@ -111,18 +118,36 @@ func onReady() {
 				tunnel.Instance().SetMode(tunnel.Direct)
 			case <-mEnabled.ClickedCh:
 				if mEnabled.Checked() {
-					mEnabled.Uncheck()
-					sysproxy.SetSystemProxy(sysproxy.SystemProxy)
+					err := sysproxy.SetSystemProxy(sysproxy.GetSavedProxy())
+					if err != nil {
+					} else {
+						mEnabled.Uncheck()
+					}
 				} else {
-					mEnabled.Check()
-					sysproxy.SetSystemProxy(
+					err := sysproxy.SetSystemProxy(
 						&sysproxy.ProxyConfig{
 							Enable: true,
 							Server: "127.0.0.1:" + strconv.Itoa(proxy.GetPorts().Port),
 						})
+					if err != nil {
+					} else {
+						mEnabled.Check()
+					}
 				}
 			case <-mURL.ClickedCh:
-				systray.ShowAppWindow("http://clash.razord.top/")
+				switch runtime.GOOS {
+				case "darwin":
+					systray.ShowAppWindow("http://clash.razord.top/")
+				case "windows":
+					err := open.RunWith("http://yacd.haishan.me/", "firefox")
+					if err != nil {
+						err = open.Run("http://yacd.haishan.me/")
+						if err != nil {
+						}
+					}
+				default:
+					systray.ShowAppWindow("http://clash.razord.top/")
+				}
 			case <-mQuit.ClickedCh:
 				systray.Quit()
 				return
@@ -132,5 +157,10 @@ func onReady() {
 }
 
 func onExit() {
-	sysproxy.SetSystemProxy(sysproxy.SystemProxy)
+	for {
+		err := sysproxy.SetSystemProxy(sysproxy.GetSavedProxy())
+		if err == nil {
+			return
+		}
+	}
 }

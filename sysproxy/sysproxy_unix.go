@@ -3,13 +3,14 @@
 package sysproxy
 
 // GetCurrentProxy is ...
-func GetCurrentProxy() *ProxyConfig {
+func GetCurrentProxy() (*ProxyConfig, error) {
 	return &ProxyConfig{
 		Enable: false,
 		Server: ":80",
-	}
+	}, nil
 }
 
 // SetSystemProxy is ...
-func SetSystemProxy(p *ProxyConfig) {
+func SetSystemProxy(p *ProxyConfig) error {
+	return nil
 }

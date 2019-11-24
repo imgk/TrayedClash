@@ -2,31 +2,60 @@ package sysproxy
 
 import (
 	"strconv"
-	"sync"
 
 	"github.com/Dreamacro/clash/proxy"
 )
-
-var saveProxy = &sync.Once{}
-
-func saveSystemProxy() {
-	systemProxy := GetCurrentProxy()
-
-	if systemProxy.Enable && systemProxy.Server == "127.0.0.1:"+strconv.Itoa(proxy.GetPorts().Port) {
-		SystemProxy = &ProxyConfig{
-			Enable: false,
-			Server: ":80",
-		}
-	} else {
-		SystemProxy = systemProxy
-	}
-}
-
-// SystemProxy is ...
-var SystemProxy = &ProxyConfig{}
 
 // ProxyConfig is ...
 type ProxyConfig struct {
 	Enable bool
 	Server string
+}
+
+// SavedProxy is ...
+var SavedProxy *ProxyConfig
+
+func (c *ProxyConfig) String() string {
+	if c == nil {
+		return "nil"
+	}
+
+	if c.Enable {
+		return "Enabled: True" + "; Server: " + c.Server
+	}
+
+	return "Enabled: False" + "; Server: " + c.Server
+}
+
+// GetSavedProxy is ...
+func GetSavedProxy() *ProxyConfig {
+	if SavedProxy == nil {
+		err := func() error {
+			p, err := GetCurrentProxy()
+			if err != nil {
+				return err
+			}
+
+			if p.Enable && p.Server == "127.0.0.1:"+strconv.Itoa(proxy.GetPorts().Port) {
+				SavedProxy = &ProxyConfig{
+					Enable: false,
+					Server: ":80",
+				}
+			} else {
+				SavedProxy = p
+			}
+
+			return nil
+		}()
+		if err != nil {
+			return &ProxyConfig{
+				Enable: false,
+				Server: ":80",
+			}
+		}
+
+		return SavedProxy
+	}
+
+	return SavedProxy
 }
