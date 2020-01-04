@@ -48,10 +48,11 @@ func GetSavedProxy() *ProxyConfig {
 			return nil
 		}()
 		if err != nil {
-			return &ProxyConfig{
+			SavedProxy = &ProxyConfig{
 				Enable: false,
 				Server: ":80",
 			}
+			return SavedProxy
 		}
 
 		return SavedProxy

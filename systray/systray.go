@@ -29,7 +29,7 @@ func onReady() {
 	systray.SetTitle("Clash")
 	systray.SetTooltip("A Rule-based Tunnel in Go")
 
-	mTitle := systray.AddMenuItem("Clash - A Rule-based Tunnel", "")
+	mTitle := systray.AddMenuItem("Clash - A Rule-Based Tunnel", "")
 	systray.AddSeparator()
 
 	mGlobal := systray.AddMenuItem("Global", "Set as Global")
@@ -79,11 +79,14 @@ func onReady() {
 				p := proxy.GetPorts().Port
 				if SavedPort != p {
 					SavedPort = p
-					sysproxy.SetSystemProxy(
+					err := sysproxy.SetSystemProxy(
 						&sysproxy.ProxyConfig{
 							Enable: true,
 							Server: "127.0.0.1:" + strconv.Itoa(SavedPort),
 						})
+					if err != nil {
+						continue
+					}
 				}
 			}
 
@@ -139,16 +142,25 @@ func onReady() {
 				case "darwin":
 					systray.ShowAppWindow("http://clash.razord.top/")
 				case "windows":
-					err := open.RunWith("http://yacd.haishan.me/", "firefox")
+					// err := open.Run("http://clash.razord.top/")
+					err := open.Run("http://yacd.haishan.me/")
 					if err != nil {
-						err = open.Run("http://yacd.haishan.me/")
-						if err != nil {
-						}
 					}
 				default:
 					systray.ShowAppWindow("http://clash.razord.top/")
 				}
 			case <-mQuit.ClickedCh:
+				if mEnabled.Checked() {
+					mEnabled.Uncheck()
+					for {
+						err := sysproxy.SetSystemProxy(sysproxy.GetSavedProxy())
+						if err != nil {
+							continue
+						} else {
+							break
+						}
+					}
+				}
 				systray.Quit()
 				return
 			}
@@ -157,10 +169,4 @@ func onReady() {
 }
 
 func onExit() {
-	for {
-		err := sysproxy.SetSystemProxy(sysproxy.GetSavedProxy())
-		if err == nil {
-			return
-		}
-	}
 }
