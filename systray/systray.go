@@ -150,17 +150,6 @@ func onReady() {
 					systray.ShowAppWindow("http://clash.razord.top/")
 				}
 			case <-mQuit.ClickedCh:
-				if mEnabled.Checked() {
-					mEnabled.Uncheck()
-					for {
-						err := sysproxy.SetSystemProxy(sysproxy.GetSavedProxy())
-						if err != nil {
-							continue
-						} else {
-							break
-						}
-					}
-				}
 				systray.Quit()
 				return
 			}
@@ -169,4 +158,12 @@ func onReady() {
 }
 
 func onExit() {
+	for {
+		err := sysproxy.SetSystemProxy(sysproxy.GetSavedProxy())
+		if err != nil {
+			continue
+		} else {
+			break
+		}
+	}
 }
