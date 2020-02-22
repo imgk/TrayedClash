@@ -51,7 +51,7 @@ func onReady() {
 		for {
 			<-t.C
 
-			switch tunnel.Instance().Mode() {
+			switch tunnel.Mode() {
 			case tunnel.Global:
 				if mGlobal.Checked() {
 				} else {
@@ -114,11 +114,11 @@ func onReady() {
 			select {
 			case <-mTitle.ClickedCh:
 			case <-mGlobal.ClickedCh:
-				tunnel.Instance().SetMode(tunnel.Global)
+				tunnel.SetMode(tunnel.Global)
 			case <-mRule.ClickedCh:
-				tunnel.Instance().SetMode(tunnel.Rule)
+				tunnel.SetMode(tunnel.Rule)
 			case <-mDirect.ClickedCh:
-				tunnel.Instance().SetMode(tunnel.Direct)
+				tunnel.SetMode(tunnel.Direct)
 			case <-mEnabled.ClickedCh:
 				if mEnabled.Checked() {
 					err := sysproxy.SetSystemProxy(sysproxy.GetSavedProxy())
@@ -142,7 +142,6 @@ func onReady() {
 				case "darwin":
 					systray.ShowAppWindow("http://clash.razord.top/")
 				case "windows":
-					// err := open.Run("http://clash.razord.top/")
 					err := open.Run("http://yacd.haishan.me/")
 					if err != nil {
 					}
