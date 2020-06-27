@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/getlantern/systray"
-	"github.com/skratchdot/open-golang/open"
 	"github.com/zserge/webview"
 
 	"github.com/Dreamacro/clash/proxy"
@@ -22,7 +21,7 @@ func init() {
 
 // Run is ...
 func Run() {
-	systray.RunWithAppWindow("Clash", 960, 640, onReady, onExit)
+	systray.Run(onReady, onExit)
 }
 
 func onReady() {
@@ -139,28 +138,15 @@ func onReady() {
 					}
 				}
 			case <-mURL.ClickedCh:
-				switch runtime.GOOS {
-				case "darwin":
-					systray.ShowAppWindow("http://127.0.0.1:8780/")
-				case "windows":
-					go func(w webview.WebView) {
-						w.SetTitle("TrayedClash")
-						w.SetSize(900, 600, webview.HintNone)
-						w.Navigate("http://127.0.0.1:8780/")
+				go func(w webview.WebView) {
+					w.SetTitle("TrayedClash")
+					w.SetSize(900, 600, webview.HintNone)
+					w.Navigate("http://127.0.0.1:8780/")
 
-						w.Run()
+					w.Run()
 
-						w.Destroy()
-					}(webview.New(false))
-				case "linux":
-					systray.ShowAppWindow("http://127.0.0.1:8780/")
-				case "other":
-					err := open.Run("http://127.0.0.1:8780/")
-					if err != nil {
-					}
-				default:
-					systray.ShowAppWindow("http://127.0.0.1:8780/")
-				}
+					w.Destroy()
+				}(webview.New(false))
 			case <-mQuit.ClickedCh:
 				systray.Quit()
 				return
