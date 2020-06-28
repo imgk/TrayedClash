@@ -1,13 +1,16 @@
 package systray
 
 import (
+	"fmt"
+	"os"
 	"runtime"
 	"strconv"
 	"time"
 
 	"github.com/getlantern/systray"
-	"github.com/zserge/webview"
+	"github.com/skratchdot/open-golang/open"
 
+	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/proxy"
 	"github.com/Dreamacro/clash/tunnel"
 
@@ -16,12 +19,16 @@ import (
 )
 
 func init() {
-	runtime.LockOSThread()
-}
+	if runtime.GOOS == "windows" {
+		currentDir, _ := os.Getwd()
+		C.SetHomeDir(currentDir)
+	}
 
-// Run is ...
-func Run() {
-	systray.Run(onReady, onExit)
+	go func() {
+		runtime.LockOSThread()
+		systray.Run(onReady, onExit)
+		runtime.UnlockOSThread()
+	}()
 }
 
 func onReady() {
@@ -113,6 +120,7 @@ func onReady() {
 		for {
 			select {
 			case <-mTitle.ClickedCh:
+				fmt.Println("Title Clicked")
 			case <-mGlobal.ClickedCh:
 				tunnel.SetMode(tunnel.Global)
 			case <-mRule.ClickedCh:
@@ -138,15 +146,7 @@ func onReady() {
 					}
 				}
 			case <-mURL.ClickedCh:
-				go func(w webview.WebView) {
-					w.SetTitle("TrayedClash")
-					w.SetSize(900, 600, webview.HintNone)
-					w.Navigate("http://127.0.0.1:8780/")
-
-					w.Run()
-
-					w.Destroy()
-				}(webview.New(false))
+				open.Run("http://127.0.0.1:8780/")
 			case <-mQuit.ClickedCh:
 				systray.Quit()
 				return
@@ -164,4 +164,6 @@ func onExit() {
 			break
 		}
 	}
+
+	os.Exit(1)
 }

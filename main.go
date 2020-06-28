@@ -16,8 +16,8 @@ import (
 	"github.com/Dreamacro/clash/hub/executor"
 	"github.com/Dreamacro/clash/log"
 
-	"github.com/imgk/TrayedClash/systray"
-	"github.com/imgk/TrayedClash/static"
+	_ "github.com/imgk/TrayedClash/systray"
+	_ "github.com/imgk/TrayedClash/static"
 )
 
 var (
@@ -45,8 +45,6 @@ func init() {
 	flag.Visit(func(f *flag.Flag) {
 		flagset[f.Name] = true
 	})
-
-	go static.ListenAndServe()
 }
 
 func main() {
@@ -61,11 +59,6 @@ func main() {
 			homeDir = filepath.Join(currentDir, homeDir)
 		}
 		C.SetHomeDir(homeDir)
-	} else {
-		if runtime.GOOS == "windows" {
-			currentDir, _ := os.Getwd()
-			C.SetHomeDir(currentDir)
-		}
 	}
 
 	if configFile != "" {
@@ -110,9 +103,5 @@ func main() {
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-
-	systray.Run()
-
-	sigCh <- syscall.SIGTERM
 	<-sigCh
 }
