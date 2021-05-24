@@ -10,12 +10,12 @@ BEGIN
         BLOCK "040904B0"
         BEGIN
             VALUE "FileDescription", "A simple GUI for clash"
-            VALUE "FileVersion", "1.0"
+            VALUE "FileVersion", "1.6"
             VALUE "LegalCopyright", "Copyright © John Xiong"
             VALUE "InternalName", "Trayed Clash"
             VALUE "OriginalFilename", "TrayedClash.exe"
             VALUE "ProductName", "TrayedClash"
-            VALUE "ProductVersion", "1.0"
+            VALUE "ProductVersion", "1.6"
         END
     END
     BLOCK "VarFileInfo"

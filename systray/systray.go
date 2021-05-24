@@ -10,7 +10,7 @@ import (
 	"github.com/getlantern/systray"
 	"github.com/skratchdot/open-golang/open"
 
-	C "github.com/Dreamacro/clash/constant"
+	"github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/proxy"
 	"github.com/Dreamacro/clash/tunnel"
 
@@ -21,7 +21,7 @@ import (
 func init() {
 	if runtime.GOOS == "windows" {
 		currentDir, _ := os.Getwd()
-		C.SetHomeDir(currentDir)
+		constant.SetHomeDir(currentDir)
 	}
 
 	go func() {

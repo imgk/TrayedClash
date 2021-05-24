@@ -1,6 +1,11 @@
 package main
 
 import (
+	_ "github.com/imgk/TrayedClash/static"
+	_ "github.com/imgk/TrayedClash/systray"
+)
+
+import (
 	"flag"
 	"fmt"
 	"os"
@@ -10,14 +15,10 @@ import (
 	"syscall"
 
 	"github.com/Dreamacro/clash/config"
-	"github.com/Dreamacro/clash/constant"
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/hub"
 	"github.com/Dreamacro/clash/hub/executor"
 	"github.com/Dreamacro/clash/log"
-
-	_ "github.com/imgk/TrayedClash/systray"
-	_ "github.com/imgk/TrayedClash/static"
 )
 
 var (
@@ -49,7 +50,7 @@ func init() {
 
 func main() {
 	if version {
-		fmt.Printf("Clash %s %s %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, C.BuildTime)
+		fmt.Printf("Clash %s %s %s with %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, runtime.Version(), C.BuildTime)
 		return
 	}
 
@@ -79,10 +80,10 @@ func main() {
 	if testConfig {
 		if _, err := executor.Parse(); err != nil {
 			log.Errorln(err.Error())
-			fmt.Printf("configuration file %s test failed\n", constant.Path.Config())
+			fmt.Printf("configuration file %s test failed\n", C.Path.Config())
 			os.Exit(1)
 		}
-		fmt.Printf("configuration file %s test is successful\n", constant.Path.Config())
+		fmt.Printf("configuration file %s test is successful\n", C.Path.Config())
 		return
 	}
 
