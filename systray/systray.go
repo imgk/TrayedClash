@@ -11,7 +11,7 @@ import (
 	"github.com/skratchdot/open-golang/open"
 
 	"github.com/Dreamacro/clash/constant"
-	"github.com/Dreamacro/clash/proxy"
+	proxy "github.com/Dreamacro/clash/listener"
 	"github.com/Dreamacro/clash/tunnel"
 
 	"github.com/imgk/TrayedClash/icon"

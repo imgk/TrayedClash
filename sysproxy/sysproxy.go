@@ -3,7 +3,7 @@ package sysproxy
 import (
 	"strconv"
 
-	"github.com/Dreamacro/clash/proxy"
+	proxy "github.com/Dreamacro/clash/listener"
 )
 
 // ProxyConfig is ...
