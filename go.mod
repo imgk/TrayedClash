@@ -3,10 +3,10 @@ module github.com/imgk/TrayedClash
 go 1.17
 
 require (
-	github.com/Dreamacro/clash v1.7.0
+	github.com/Dreamacro/clash v1.7.1
 	github.com/getlantern/systray v1.1.0
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
-	golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0
+	golang.org/x/sys v0.0.0-20210915083310-ed5796bab164
 )
 
 require (
@@ -32,7 +32,7 @@ require (
 	github.com/u-root/uio v0.0.0-20210528114334-82958018845c // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
-	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f // indirect
+	golang.org/x/net v0.0.0-20210916014120-12bc252f5db8 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/text v0.3.6 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
